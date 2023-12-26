@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Summarizer</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+</head>
+
+<body>
+
+    <div class="container">
+        <h1 class="mt-4">Text Summarizer</h1>
+
+        <form id="summarizeForm">
+            <div class="form-group">
+                <textarea class="form-control" id="post_body" name="post_body" rows="8" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="Generate Summary">
+            </div>
+
+            <div class="form-group">
+                <button id="clearButton" class="btn btn-danger" onclick="clearFields()">Clear</button>
+            </div>
+        </form>
+
+        <div class="text-section" id="generatedSummarySection">
+            <div class="row">
+                <div class="col-md-8" id="generatedSummaryContent">
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingSpinner">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p class="mt-2">Generating summary...</p>
+        </div>
+
+        <div id="wordCountInfo" class="word-count-info">
+            <p id="inputWordCount">Content Words: 0</p>
+            <p id="summaryWordCount">Summary Words: 0</p>
+        </div>
+
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.8/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function clearFields() {
+            var postBodyTextArea = document.getElementById('post_body');
+            var formData = new FormData(document.getElementById('summarizeForm'));
+    
+            if (!formData.get('post_body')) {
+                postBodyTextArea.value = '';
+                return;
+            }
+    
+            if (confirm('Are you sure you want to clear the text?')) {
+                postBodyTextArea.value = '';
+                document.querySelector('input[name="summary_length"]:checked').checked = false;
+                document.getElementById('generatedSummarySection').innerHTML = '';
+                document.getElementById('wordCountInfo').style.display = 'none';
+            }
+        }
+    
+        document.addEventListener('DOMContentLoaded', function () {
+            var form = document.getElementById('summarizeForm');
+            var generatedSummarySection = document.getElementById('generatedSummarySection');
+            var loadingSpinner = document.getElementById('loadingSpinner');
+            var wordCountInfo = document.getElementById('wordCountInfo');
+            var inputWordCount = document.getElementById('inputWordCount');
+            var summaryWordCount = document.getElementById('summaryWordCount');
+            var postBodyTextArea = document.getElementById('post_body');
+    
+            postBodyTextArea.addEventListener('input', function () {
+                var currentText = postBodyTextArea.value;
+                var wordCount = currentText.split(/\s+/).filter(function (word) {
+                    return word.length > 0;
+                }).length;
+    
+                inputWordCount.innerText = `Content Words: ${wordCount}`;
+            });
+    
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+    
+                var formData = new FormData(form);
+    
+                var postBody = formData.get('post_body');
+                var minTextLength = 80;
+                if (postBody.split(/\s+/).length < minTextLength) {
+                    alert('Text must have a minimum of ' + minTextLength + ' words.');
+                    return;
+                }
+    
+                loadingSpinner.style.display = 'block';
+    
+                generatedSummarySection.innerHTML = '';
+                wordCountInfo.style.display = 'none';
+    
+                fetch('/summarize', {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.original_text) {
+                        generatedSummarySection.innerHTML = `
+                            <h3>Summary</h3>
+                            <p id="generatedSummary">${data.generated_summary}</p>
+                        `;
+    
+                        inputWordCount.innerText = `Content Words: ${data.input_word_count}`;
+                        summaryWordCount.innerText = `Summary Words: ${data.summary_word_count}`;
+                        wordCountInfo.style.display = 'flex';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error:', error.message);
+                })
+                .finally(() => {
+                    loadingSpinner.style.display = 'none';
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

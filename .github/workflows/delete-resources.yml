@@ -1,0 +1,37 @@
+name: Delete resources
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ds-cluster-408911
+  GKE_CLUSTER: ds-cluster-gpu
+  GKE_ZONE: me-west1
+  SERVICE_ACCOUNT_KEY: ${{ secrets.GK_SA_KEY }}
+
+jobs:
+  delete-resources:
+    name: Delete Resources
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+      with:
+        service_account_key: ${{ secrets.GK_SA_KEY }}
+        project_id: ${{ secrets.GKE_PROJECT }}
+
+    - uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GK_SA_KEY }}
+
+    - name: Delete Pods, Services, and HPA
+      run: |
+        kubectl delete deployment ds-text-summary
+        kubectl delete service ds-text-summary-service
+        kubectl delete hpa ds-text-summary-hpa
