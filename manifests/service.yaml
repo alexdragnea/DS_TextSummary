@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ds-text-summary-service
+spec:
+  selector:
+    app: ds-text-summary
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 9999
+    targetPort: 9999
+  selector:
+    app: ds-text-summary

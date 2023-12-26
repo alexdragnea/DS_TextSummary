@@ -1,0 +1,41 @@
+name: Apply manifests to GKE
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ds-cluster-408911
+  GKE_CLUSTER: ds-cluster-autopilot
+  GKE_ZONE: europe-west1
+  SERVICE_ACCOUNT_KEY: ${{ secrets.GK_SA_KEY }}
+
+jobs:
+  deploy-to-gke:
+    name: Apply manifests to GKE
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+      with:
+        service_account_key: ${{ secrets.GK_SA_KEY }}
+        project_id: ${{ secrets.GKE_PROJECT }}
+
+    - uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GK_SA_KEY }}
+
+    - name: Deploy
+      run: |
+        kubectl apply -f https://raw.githubusercontent.com/alexdragnea/DS_TextSummary/main/manifests/service.yaml 
+        sleep 10 
+        kubectl apply -f https://raw.githubusercontent.com/alexdragnea/DS_TextSummary/main/manifests/deployment.yaml 
+        sleep 180 
+        kubectl apply -f https://raw.githubusercontent.com/alexdragnea/DS_TextSummary/main/manifests/hpa.yaml 
+        kubectl get pods
+        sleep 60
+        kubectl get svc
+        kubectl get hpa

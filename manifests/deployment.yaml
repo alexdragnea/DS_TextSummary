@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ds-text-summary
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: ds-text-summary
+  template:
+    metadata:
+      labels:
+        app: ds-text-summary
+    spec:
+      containers:
+        - name: ds-text-summary
+          image: alexdragnea/ds-text-summary:latest
+          resources:
+            limits:
+              cpu: 4
+              memory: 9G
+              ephemeral-storage: 6G
+            requests:
+              cpu: 2
+              memory: 7G
+              ephemeral-storage: 4G
+          ports:
+            - containerPort: 9999
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: 9999
+            initialDelaySeconds: 200
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: 9999
+            initialDelaySeconds: 200
+            periodSeconds: 5
