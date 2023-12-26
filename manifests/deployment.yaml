@@ -15,7 +15,7 @@ spec:
         app: ds-text-summary
     spec:
       nodeSelector:
-        cloud.google.com/gke-accelerator: nvidia-tesla-t4
+        cloud.google.com/gke-accelerator: "nvidia-tesla-t4"
       containers:
         - name: ds-text-summary
           image: alexdragnea/ds-text-summary:latest
