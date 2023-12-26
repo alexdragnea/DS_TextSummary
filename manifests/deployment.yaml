@@ -15,7 +15,7 @@ spec:
         app: ds-text-summary
     spec:
       nodeSelector:
-        cloud.google.com/gke-accelerator: "nvidia-l4"
+        cloud.google.com/gke-accelerator: "nvidia-tesla-t4"
       containers:
         - name: ds-text-summary
           image: alexdragnea/ds-text-summary:latest
@@ -24,9 +24,12 @@ spec:
               nvidia.com/gpu: 1
               memory: 9G
               ephemeral-storage: 6G
+              cpu: 3
             requests:
+              nvidia.com/gpu: 1
               memory: 7G
               ephemeral-storage: 4G
+              cpu: 3
           ports:
             - containerPort: 9999
           livenessProbe:
