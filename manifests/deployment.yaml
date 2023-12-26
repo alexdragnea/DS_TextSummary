@@ -14,16 +14,16 @@ spec:
       labels:
         app: ds-text-summary
     spec:
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-tesla-t4
       containers:
         - name: ds-text-summary
           image: alexdragnea/ds-text-summary:latest
           resources:
             limits:
-              cpu: 4
               memory: 9G
               ephemeral-storage: 6G
             requests:
-              cpu: 2
               memory: 7G
               ephemeral-storage: 4G
           ports:
